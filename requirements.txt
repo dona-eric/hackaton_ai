@@ -1,0 +1,18 @@
+# --- API et Serveur ---
+fastapi
+uvicorn[standard]
+
+# --- Base de données ---
+sqlalchemy
+psycopg2-binary
+
+# --- OCR et traitement d’images ---
+pytesseract
+Pillow
+pdf2image
+
+# --- Google Gemini ---
+google-generativeai
+
+# --- Utilitaires ---
+python-dotenv    # pour charger GOOGLE_API_KEY
