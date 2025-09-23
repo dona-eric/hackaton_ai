@@ -5,6 +5,17 @@ from database import PlotDocument
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
+def parse_gemini_json(response_text: str) -> dict:
+    
+    # Sécurise et extrait uniquement le JSON renvoyé par Gemini.
+    try:
+        match = re.search(r"\{.*\}", response_text, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+        return {"status": "REJECTED", "reason": "Pas de JSON détecté", "anomalies": []}
+    except json.JSONDecodeError:
+        return {"status": "REJECTED", "reason": "Erreur parsing JSON", "anomalies": []}
+
 def ai_semantic_check_gemini(extracted_docs: dict, reference_docs: dict) -> dict:
     model = genai.GenerativeModel("gemini-2.5-pro")
 
@@ -29,13 +40,9 @@ def ai_semantic_check_gemini(extracted_docs: dict, reference_docs: dict) -> dict
       "anomalies": [liste d’anomalies détectées si REJECTED]
     }}
     """
-
     response = model.generate_content(prompt)
-    try:
-        return eval(response.text)
-    except Exception:
-        return {"status": "REJECTED", "reason": "Erreur d'analyse IA", "anomalies": []}
-
+    return parse_gemini_json(response.text)
+        
 def verify_documents(plot_id: str, extracted_docs: dict, db: Session):
     docs = db.query(PlotDocument).filter(PlotDocument.plot_id == plot_id).all()
     if not docs:
